@@ -16,6 +16,7 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('home', function () {
+    Route::resource('user', UserController::class);
         return view('pages.dashboard', ['type_menu' => 'home']);
     })->name('home');
 

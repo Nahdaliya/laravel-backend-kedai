@@ -25,65 +25,64 @@ class UserController extends Controller
 }
   //create
   public function create()
-  {
-      return view ('pages.auth.user.create');
+{
+    return view('pages.auth.user.create'); // Render the create form
 }
 
 public function store(Request $request)
 {
     $request->validate([
         'name' => 'required',
-        'email' => 'required',
-        'password' => 'required',
-        'phone'=> 'required',
+        'email' => 'required|email|unique:users',
+        'password' => 'required|min:8',
+        'phone' => 'required',
         'roles' => 'required',
     ]);
-    $user = User::create([
+
+    User::create([
         'name' => $request->name,
         'email' => $request->email,
         'password' => Hash::make($request->password),
         'phone' => $request->phone,
         'roles' => $request->roles,
     ]);
-    return redirect()->route('user.index')->with('success', 'User created successfully.');
 
+    return redirect()->route('user.index')->with('success', 'User created successfully');
 }
- //show
- public function show($id)
- {
-     return view ('pages.dashboard');
 
- }
-
- //edit
- public function edit($id)
- {
-     $user = User::findOrFail($id);
-     return view('pages.auth.user.edit', compact('user'));
- }
-
- //update
- public function update(Request $request, $id)
+public function edit($id)
 {
- $data = $request->all();
- $user = User::findOrFail($id);
-
- //check if password is not empty
- if ($request->input('password')) {
-     $data['password'] = Hash::make($request->input('password'));
- } else {
-     //if password is empty, then use the old password
-     $data['password'] = $user->password;
- }
- $user->update($data);
- return redirect()->route('user.index') ->with('success', 'User updated successfully');
-
+    $user = User::findOrFail($id);
+    return view('pages.auth.user.edit', compact('user')); // Render the edit form
 }
-   //destroy
- public function destroy($id)
- {
-     $user = User::findOrFail($id);
-     $user->delete();
-     return redirect()->route('user.index')->with('success', 'User deleted successfully');
-    }
+
+public function update(Request $request, $id)
+{
+    $user = User::findOrFail($id);
+
+    $request->validate([
+        'name' => 'required',
+        'email' => 'required|email|unique:users,email,' . $id,
+        'phone' => 'required',
+        'roles' => 'required',
+    ]);
+
+    $user->update([
+        'name' => $request->name,
+        'email' => $request->email,
+        'phone' => $request->phone,
+        'roles' => $request->roles,
+        'password' => $request->password ? Hash::make($request->password) : $user->password,
+    ]);
+
+    return redirect()->route('user.index')->with('success', 'User updated successfully');
+}
+
+public function destroy($id)
+{
+    $user = User::findOrFail($id);
+    $user->delete();
+
+    return redirect()->route('user.index')->with('success', 'User deleted successfully');
+}
 }
